@@ -7,20 +7,24 @@ buttons.forEach(button => {
   });
 });
 
-const checkWhatToDo = (text) => {
-  if (display.textContent === "0") {
+const checkWhatToDo = (pressedButton) => {
+  if (display.textContent === "0" && pressedButton !== ".") {
     display.textContent = "";
   }
-  if (text === "Clear") {
+  if (pressedButton === "Clear") {
     display.textContent = 0;
   } else {
-    display.textContent += text;
-    let [number1, number2, operator] = getValuesFromDisplay();
-    console.log(number1, number2, operator);
-    if (number1 !== undefined && number2 !== undefined && operator !== undefined) {
-      number1 = parseInt(number1);
-      number2 = parseInt(number2);
-      display.textContent = operate(number1, number2, operator);
+    display.textContent += pressedButton;
+
+    // calculate the thing
+    if (pressedButton === "=") {
+      let [number1, number2, operator] = getValuesFromDisplay();
+      console.log(number1, number2, operator);
+      if (number1 !== undefined && number2 !== undefined && operator !== undefined) {
+        number1 = parseFloat(number1);
+        number2 = parseFloat(number2);
+        display.textContent = operate(number1, number2, operator);
+      }
     }
   }
 }
@@ -32,8 +36,10 @@ const getValuesFromDisplay = () => {
 
   if(operator) {
     // regex thing, not sure how this works tbh
+    // escape + - / * to work properly
     const escapedOperator = operator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const pattern = `(-?\\d+)${escapedOperator}(-?\\d+)`;
+    // number operator number. Number can be decimal, negative or both
+    const pattern = `(-?\\d?.?\\d+)${escapedOperator}(-?\\d?.?\\d+)`;
     const regex = new RegExp(pattern, "g");
 
     const matches = Array.from(displayContent.matchAll(regex));

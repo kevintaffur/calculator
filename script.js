@@ -1,5 +1,6 @@
 const buttons = document.querySelectorAll(".btn");
 const display = document.querySelector(".display");
+const keys = "1234567890+-*/.=<-";
 
 const ZERO_DIVISION = "Zero Division";
 
@@ -7,6 +8,19 @@ buttons.forEach(button => {
   button.addEventListener("click", (e) => {
     checkWhatToDo(e.target.innerText);
   });
+});
+
+document.addEventListener("keydown", (e) => {
+  let pressedKey = e.key;
+  if (pressedKey === "Enter") {
+    pressedKey = "=";
+  }
+  if (pressedKey === "Backspace") {
+    pressedKey = "<-";
+  }
+  if (keys.includes(pressedKey)) {
+    checkWhatToDo(pressedKey);
+  }
 });
 
 const checkWhatToDo = (pressedButton) => {

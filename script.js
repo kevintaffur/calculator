@@ -1,6 +1,10 @@
 const buttons = document.querySelectorAll(".btn");
 const display = document.querySelector(".display");
 const keys = "1234567890+-*/.=<-";
+let numberOfPoints = 0;
+const pointButton = document.querySelector(".point");
+let isOnSecondNumber = false;
+let alreadyHaveAPoint = false;
 
 const ZERO_DIVISION = "Zero Division";
 
@@ -27,6 +31,18 @@ const checkWhatToDo = (pressedButton) => {
   if (display.textContent === "0" && pressedButton !== ".") {
     display.textContent = "";
   }
+  // points control
+  if (pressedButton === ".") {
+    if (isOnSecondNumber && !alreadyHaveAPoint) {
+      numberOfPoints = 0;
+      alreadyHaveAPoint = true;
+    }
+    if (numberOfPoints === 1) {
+      return;
+    } else {
+      numberOfPoints += 1;
+    }
+  }
   if ((display.textContent === "" && pressedButton === "=") ||
       (display.textContent === "" && pressedButton === "+") ||
       (display.textContent === "" && pressedButton === "/") ||
@@ -44,11 +60,17 @@ const checkWhatToDo = (pressedButton) => {
     display.textContent = "0";
   } else if (pressedButton === "Clear") {
     display.textContent = 0;
+    numberOfPoints = 0;
+    isOnSecondNumber = false;
+    alreadyHaveAPoint = false;
   } else if (pressedButton === "<-") {
     const oldContent = display.textContent;
     if (oldContent.length === 1) {
       display.textContent = "0";
     } else {
+      if (oldContent.slice(-1) === ".") {
+        numberOfPoints -= 1;
+      }
       display.textContent = oldContent.substring(0, oldContent.length - 1);
     }
   } else if (pressedButton === "+/-") {
@@ -76,11 +98,20 @@ const checkWhatToDo = (pressedButton) => {
 
     let [number1, operator, number2] = getValuesFromDisplay();
 
+    // when operator value is available means it's already on the second number
+    // so another point can be added
+    if (operator) {
+      isOnSecondNumber = true;
+    }
+
     // calculate if another operation sign is pressed after 2 numbers and operator
     if (number1 !== undefined && number2 !== undefined && operator !== undefined) {
       if (pressedButton === "+" || pressedButton === "-" ||
           pressedButton === "/" || pressedButton === "*") {
-        getMath(number1, number2, operator);
+        doMath(number1, number2, operator);
+        isOnSecondNumber = false;
+        alreadyHaveAPoint = false;
+        numberOfPoints = 0;
         if (display.textContent !== ZERO_DIVISION) {
           display.textContent += pressedButton;
         }
@@ -89,12 +120,15 @@ const checkWhatToDo = (pressedButton) => {
 
     // calculate the thing
     if (pressedButton === "=") {
-      getMath(number1, number2, operator);
+      isOnSecondNumber = false;
+      alreadyHaveAPoint = false;
+      numberOfPoints = 0;
+      doMath(number1, number2, operator);
     }
   }
 }
 
-const getMath = (n1, n2, op) => {
+const doMath = (n1, n2, op) => {
   number1 = parseFloat(n1);
   number2 = parseFloat(n2);
   display.textContent = operate(number1, number2, op);
@@ -125,20 +159,8 @@ const createRegex = (operator) => {
   // escape + - / * to work properly
   const escapedOperator = operator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // number operator number. Number can be decimal, negative or both
-  const pattern = `(-?\\d?.?\\d+)(${escapedOperator})(-?\\d?.?\\d+)`;
+  const pattern = `(-?\\d*.?\\d+)(${escapedOperator})(-?\\d*.?\\d+)`;
   return new RegExp(pattern);
-}
-
-const getOperator = (displayContent) => {
-  if (displayContent.includes("+")) {
-    return "+";
-  } else if (displayContent.includes("-")) {
-    return "-";
-  } else if (displayContent.includes("*")) {
-    return "*";
-  } else if (displayContent.includes("/")) {
-    return "/";
-  }
 }
 
 const operate = (number1, number2, operator) => {
@@ -157,24 +179,36 @@ const operate = (number1, number2, operator) => {
 }
 
 const add = (number1, number2) => {
-  return number1 + number2;
+  const result = number1 + number2;
+  if (result % 1 !== 0) {
+    return result.toFixed(1);
+  }
+  return result;
 }
+
 const substract = (number1, number2) => {
-  return number1 - number2;
+  const result = number1 - number2;
+  if (result % 1 !== 0) {
+    return result.toFixed(1);
+  }
+  return result;
 }
+
 const multiply = (number1, number2) => {
   const result = number1 * number2;
-  if (result % 2 === 0) {
-    return result;
+  if (result % 1 !== 0) {
+    return result.toFixed(1);
   }
-  return result.toFixed(2);
+  return result;
 }
+
 const divide = (number1, number2) => {
   if (number2 === 0) {
     return ZERO_DIVISION;
   }
-  if (number1 % number2 === 0) {
-    return number1 / number2;
+  const result = number1 / number2;
+  if (result !== 1) {
+    return result.toFixed(1);
   }
-  return (number1 / number2).toFixed(5);
+  return result;
 }
